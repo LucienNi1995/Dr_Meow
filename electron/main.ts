@@ -515,9 +515,9 @@ function launch() {
   });
 
   desktop.start();
-  app.on('second-instance', () => desktop.openChat());
-  app.on('activate', () => desktop.openChat());
-  app.on('window-all-closed', () => app.quit());
+  app.on('second-instance', () => { if (!quitting) desktop.openChat(); });
+  app.on('activate', () => { if (!quitting) desktop.openChat(); });
+  app.on('window-all-closed', () => { if (!quitting) app.quit(); });
   powerMonitor.on('resume', () => {
     modelCache = undefined;
     desktop.reconcileDisplays();
