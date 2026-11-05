@@ -1,0 +1,25 @@
+appId: org.drmeow.desktop
+productName: Dr. Meow
+directories:
+  output: release
+files:
+  - dist/**/*
+  - '!dist/native/**'
+  - package.json
+asar: true
+win:
+  target:
+    - target: nsis
+      arch: x64
+  icon: public/assets/app.ico
+  signExecutable: false
+  extraResources:
+    - from: dist/native/FullscreenProbe.exe
+      to: native/FullscreenProbe.exe
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  include: scripts/installer.nsh
+artifactName: Dr-Meow-Upgrade-${version}-${arch}.${ext}
+

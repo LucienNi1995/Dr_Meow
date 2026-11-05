@@ -1,0 +1,174 @@
+.pet-stage .pet-popover {
+  position: absolute;
+  box-sizing: border-box;
+  z-index: 2;
+  border: 1px solid #e7c5b6;
+  border-radius: 15px;
+  background: #fff8ef;
+  color: #503a34;
+  box-shadow: 0 3px 9px #4f292c28;
+}
+
+.pet-stage .pet-status-panel {
+  --panel-inset: max(8px, calc((var(--pet-size) - 232px) / 2));
+  right: var(--panel-inset);
+  bottom: calc(var(--pet-size) + 8px);
+  width: min(232px, calc(100% - 16px));
+  padding: 6px;
+}
+
+.pet-status-panel::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--pet-size) / 2 - var(--panel-inset) - 4px);
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  background: #fff8ef;
+  border-right: 1px solid #e7c5b6;
+  border-bottom: 1px solid #e7c5b6;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.pet-state-grid, .pet-status-actions {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pet-status-actions {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 5px;
+}
+
+.pet-status-actions.pet-status-food {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pet-stage .pet-stat, .pet-stage .pet-stat-energy {
+  display: grid;
+  grid-template-rows: 25px 13px 12px;
+  justify-items: center;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 3px 0 2px;
+  border: 1px solid #ecd3c5;
+  border-radius: 9px;
+  background: #fff3e7;
+  color: #68463c;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.12;
+}
+
+.pet-stage .pet-stat-energy {
+  background: #f5edf8;
+  color: #60446c;
+  border-color: #e6d4ec;
+}
+
+.pet-stat-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+}
+
+.pet-stat-level .pet-symbol {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 22px;
+}
+
+.pet-stat-number {
+  color: #442e2a;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pet-stat-detail {
+  font-size: 8.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.pet-stat[data-stat="bowl"] { --liquid-color: #e7a05e; }
+.pet-stat[data-stat="mood"] { --liquid-color: #d6a65d; }
+.pet-stat[data-stat="heart"] { --liquid-color: #e399a9; }
+.pet-liquid-well { fill: #fffaf5; }
+.pet-liquid-fill { fill: var(--liquid-color); transition: transform .38s ease-out; }
+.pet-liquid-surface { stroke: var(--liquid-color); stroke-width: .8; }
+.pet-liquid-ripple { fill: none; stroke: #fff8ee; stroke-width: .8; opacity: 0; }
+
+.pet-stat[data-gain] { animation: pet-liquid-reward .75s ease-out; }
+.pet-stat[data-gain] .pet-liquid-ripple { animation: pet-liquid-ripple .64s ease-out; }
+
+@keyframes pet-liquid-reward {
+  30% { box-shadow: inset 0 0 0 1px var(--liquid-color); background: #fff8ed; }
+}
+
+@keyframes pet-liquid-ripple {
+  28% { opacity: .8; }
+  to { opacity: 0; transform: translateY(1px); }
+}
+
+.pet-stage .pet-labeled-button {
+  border-color: #e9cec0;
+  color: #62413a;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.pet-stage .pet-labeled-button::after { content: none; }
+.pet-stage .pet-labeled-button:hover { background: #f8e5d7; }
+.pet-stage .pet-stat-energy:hover { background: #ecdef1; }
+.pet-stage .pet-labeled-button:focus-visible { outline-color: #8b5361; }
+
+.pet-stage .pet-status-actions .pet-labeled-button {
+  grid-template-rows: 19px 12px;
+  min-height: 37px;
+  padding: 2px 0;
+}
+
+.pet-status-actions .pet-symbol {
+  width: 18px;
+  height: 18px;
+}
+
+.pet-stage .pet-context-panel {
+  right: max(8px, calc((var(--pet-size) - 150px) / 2));
+  bottom: calc(var(--pet-size) + 8px);
+  width: 150px;
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.pet-stage .pet-context-panel .pet-labeled-button {
+  grid-template-columns: 21px 1fr;
+  justify-items: start;
+  gap: 7px;
+  padding: 4px 9px;
+  min-height: 30px;
+  font-size: 12px;
+}
+
+.pet-stage .pet-context-panel .pet-labeled-button[aria-pressed="true"] {
+  background: #f8e5d7;
+  border-color: #cc9f8a;
+}
+
+.pet-stage .pet-target[data-locked] { cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-liquid-fill { transition: none; }
+  .pet-stat[data-gain], .pet-stat[data-gain] .pet-liquid-ripple { animation: none; }
+}
+
+.pet-stage[data-motion="gentle"] .pet-liquid-fill { transition: none; }
+.pet-stage[data-motion="gentle"] :is(.pet-stat[data-gain], .pet-liquid-ripple) { animation: none; }
