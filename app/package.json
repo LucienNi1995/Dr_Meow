@@ -1,0 +1,21 @@
+{
+  "name": "dr-meow",
+  "productName": "Dr. Meow",
+  "version": "1.1.0",
+  "description": "A quiet Windows desktop cat and ChatGPT companion",
+  "author": "Dr. Meow contributors",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "main": "dist/electron/main.cjs",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  }
+}
