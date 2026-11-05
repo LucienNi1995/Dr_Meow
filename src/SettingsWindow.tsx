@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { UsagePanel } from './UsagePanel.tsx';
 import type { PetState, Settings, SkinId } from '../shared/contracts.ts';
 import { AccountCard, CatArtwork, WindowBar, desktop, useDesktop } from './common.tsx';
 import { PetActionPreview } from './pet/PetActionPreview.tsx';
@@ -8,7 +9,7 @@ import { moodFor } from '../shared/petCare.ts';
 import { normalizePetName } from '../shared/chatCare.ts';
 import type { translator } from '../shared/i18n.ts';
 
-type Tab = 'appearance' | 'ai' | 'data';
+type Tab = 'appearance' | 'ai' | 'usage' | 'data';
 type Wipe = 'chats' | 'pet' | 'all';
 
 const skins: ReadonlyArray<{ id: SkinId; zh: string; en: string }> = [
@@ -86,7 +87,8 @@ export function SettingsWindow() {
     }
   }
   const labels: [Tab, string][] = [
-    ['appearance', t('外观', 'Appearance')], ['ai', t('账号与 AI', 'Account & AI')], ['data', t('本地数据', 'Local data')],
+    ['appearance', t('外观', 'Appearance')], ['ai', t('账号与 AI', 'Account & AI')],
+    ['usage', t('用量', 'Usage')], ['data', t('本地数据', 'Local data')],
   ];
   return <main className="shell settings-shell">
     <WindowBar subtitle={t('猫博士设置', 'Dr. Meow settings')} locale={locale} skin={settings?.skin} />
@@ -175,7 +177,7 @@ export function SettingsWindow() {
             <option value="detailed">{t('详细', 'Detailed')}</option>
           </select></label>
         </section>
-      </> : <>
+      </> : tab === 'usage' ? <UsagePanel t={t} locale={locale} /> : <>
         <section className="setting-card">
           <h2>{t('猫博士近况', 'How Dr. Meow is doing')}</h2>
           {pet && <div className="pet-icon-row pet-preview-transport" role="group" aria-label={t('猫咪状态', 'Cat status')}>

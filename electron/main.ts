@@ -13,6 +13,8 @@ import { careContacts, moodFor } from '../shared/petCare.ts';
 import { careReason, petName } from '../shared/chatCare.ts';
 import { applyPetAction, LocalDatabase, petAtTime, sanitizeSettings } from './database.ts';
 import { DesktopWindows } from './windows.ts';
+import type { ModelPrice, UsageRecord } from '../shared/usage.ts';
+import { SessionUsageScanner } from './usageSessions.ts';
 
 app.setName('Dr. Meow');
 if (process.platform === 'win32') app.setAppUserModelId('org.drmeow.desktop');
@@ -65,6 +67,18 @@ function launch() {
   let authGeneration = 0;
   let resetting = false;
   const desktop = new DesktopWindows(db, () => quitting, !smoke);
+  const usageScanner = new SessionUsageScanner();
+  let usageGeneration = 0;
+  async function syncUsage(force = false) {
+    const scan = db.usageScan();
+    if (smoke || resetting || !scan.enabled || (!force && Date.now() - (scan.at ?? 0) < 60_000)) return;
+    const generation = usageGeneration;
+    const result = await usageScanner.scan(rows => {
+      if (!quitting && !resetting && generation === usageGeneration) db.importUsage(rows);
+    });
+    if (!quitting && !resetting && generation === usageGeneration) db.saveUsageScan(result);
+  }
+  const usageTimer = setInterval(() => { void syncUsage().catch(() => {}); }, 10 * 60_000);
   if (process.platform === 'darwin') {
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' },
@@ -248,6 +262,7 @@ function launch() {
     if (rested) desktop.broadcast('pet:state', rested);
     desktop.animate('thinking');
     let lastUpdate = 0;
+    let usage: UsageRecord | undefined;
     try {
       if (serviceStatus === 'limited') throw new UserMessageError(t('请先查看 ChatGPT 用量，再选择恢复请求。', 'Check your ChatGPT usage, then choose Resume requests.'));
       const catalog = await models();
@@ -262,7 +277,15 @@ function launch() {
       const context = (retry ? messages.slice(0, -2) : messages)
         .filter(message => message.role === 'user' || (message.status === 'complete' && message.text))
         .slice(-16);
+      usage = { id: randomUUID(), source: 'meow', model, at: Date.now(), status: 'running' };
+      db.recordUsage(usage);
       const result = await ai.respond({
+        onUsage(tokens, returnedModel) {
+          if (usage) {
+            usage.tokens = tokens; usage.model = returnedModel ?? model;
+            if (!quitting) db.recordUsage(usage);
+          }
+        },
         model, messages: [...context, user], tone: prefs.tone, length: prefs.length, locale: prefs.locale, petName: prefs.petName,
         search: input.search === true, skipAutomaticSearch: retry && !input.search, signal: controller.signal,
         onDelta(delta) {
@@ -300,6 +323,10 @@ function launch() {
       }
     } finally {
       if (!quitting) {
+        if (usage) {
+          usage.status = response.status === 'complete' ? 'complete' : response.status === 'cancelled' ? 'cancelled' : 'error';
+          db.recordUsage(usage);
+        }
         if (response.status === 'complete') {
           const before = petAtTime(db.pet());
           const pet = db.completeChatReply(user.id, response, Date.now(), prefs.petName);
@@ -320,6 +347,17 @@ function launch() {
   }
 
   handle('settings:get', all, () => db.settings());
+  handle('usage:get', accountWindows, async () => { await syncUsage(); return db.usage(); });
+  handle('usage:price', settings, (price: ModelPrice) => { if (!resetting) db.setUsagePrice(price); });
+  handle('usage:clear', settings, () => { if (!resetting) { usageGeneration++; db.clearUsage(); usageScanner.reset(); } });
+  handle('usage:scanning', settings, async (enabled: boolean) => {
+    if (resetting || typeof enabled !== 'boolean') return;
+    usageGeneration++;
+    db.saveUsageScan({ ...db.usageScan(), enabled, at: undefined });
+    usageScanner.reset();
+    if (enabled) await syncUsage(true);
+  });
+  handle('usage:sync', settings, () => syncUsage(true));
   handle('settings:update', ['pet', 'chat', 'settings'], (patch: Partial<Settings>) => {
     const old = db.settings();
     if (!patch || typeof patch !== 'object' || resetting) return old;
@@ -492,6 +530,8 @@ function launch() {
   handle('data:clear', settings, async () => {
     if (resetting) return;
     resetting = true;
+    usageGeneration++;
+    usageScanner.reset();
     pendingCare = undefined;
     try {
       authGeneration++;
@@ -515,6 +555,7 @@ function launch() {
   });
 
   desktop.start();
+  void syncUsage().catch(() => {});
   app.on('second-instance', () => { if (!quitting) desktop.openChat(); });
   app.on('activate', () => { if (!quitting) desktop.openChat(); });
   app.on('window-all-closed', () => { if (!quitting) app.quit(); });
@@ -525,6 +566,7 @@ function launch() {
   });
   app.on('before-quit', () => {
     quitting = true;
+    clearInterval(usageTimer);
     auth.cancel();
     active?.controller.abort();
     desktop.close();

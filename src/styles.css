@@ -218,3 +218,12 @@ html[data-window="chat"], html[data-window="settings"] { background: #fff9f5; }
 .pet-preview-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .pet-preview-transport { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pet-preview-controls .pet-icon-button { min-height: 32px; }
+
+.usage-totals, .usage-rates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.usage-totals dd { margin: 4px 0; font-size: 19px; font-weight: 700; }
+.usage-totals dt { color: var(--muted); font-size: 11px; }
+.usage-rates { margin: 10px 0; }
+.usage-rates input { width: 100%; min-width: 0; }
+.usage-requests { list-style: none; padding: 0; }
+.usage-requests li { display: grid; gap: 4px; padding: 9px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.usage-requests small { color: var(--muted); }

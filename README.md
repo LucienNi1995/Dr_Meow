@@ -61,6 +61,20 @@ Windows 开发构建需要 Node.js 24、pnpm 11 和系统自带的 .NET Framewor
 python scripts/build_pet_frames.py --sources
 ```
 
+## 用量与费用估算
+
+在「设置 → 用量」查看此设备上的 Meow、Claude Code 和 Codex Token 用量，可按来源与今天、最近 7 天或全部历史筛选。Meow 自动记录新模型请求；旧聊天不会推算。重试是独立请求，未返回计数的中断请求显示未知，不记为零。
+
+打开「导入本地用量」后，Meow 只读扫描 `~/.claude/projects/` 和 `~/.codex/sessions/` 中的 JSONL 文件，支持 `CLAUDE_CONFIG_DIR` 和 `CODEX_HOME` 自定义目录。首次启用导入历史，页面显示期间每分钟检查，后台每 10 分钟检查，也可点「立即同步」。仅保存来源、模型、时间和 Token 计数；不保存提示词、聊天正文或工具输出，不读取其他工具的登录凭据，也不需要代理。重复 Claude 消息块、Codex 累计快照和重复扫描不会叠加相同记录。
+
+在「模型单价」填写每百万 Token 的美元输入、输出、缓存读取和缓存写入价格。按完整模型名称匹配；未知模型保持未定价，不自动套用其他模型价格。修改价格会重新计算历史估算。缓存读取/写入包含在输入总数中，推理 Token 包含在输出总数中，不重复加算。缓存写入使用一个可配置费率，不能区分不同缓存保留时长；工具、搜索和其他额外费用不包含在内。
+
+金额是 API 等值估算，不是 ChatGPT / Claude 订阅账单、余额或剩余配额。不同 CLI 日志版本可能有不兼容格式；缺失、无法解析、权限拒绝或超出扫描限制的日志会使统计不完整。对于只含 Codex 累计计数、缺少单次计数的日志，第一条作为基线而不计费，计数重置时跳过不明确的增量，避免重复计算继承历史。每次扫描最多处理 5,000 个文件和 256 MiB 的变更内容，单文件限 64 MiB。只读本地日志不等于为 Meow 聊天增加 Claude 等新模型供应商。
+
+清空聊天不会清空用量。清空用量会暂停日志导入并屏蔽清除时间以前的记录；模型单价保留。「清除全部本地数据」也会删除用量和单价。原 CLI 日志始终保留；清除全部数据后重新启用导入会重新读取原日志。
+
+实现参考 [CC Switch 用量说明](https://github.com/farion1231/cc-switch/blob/main/docs/user-manual/en/4-proxy/4.4-usage.md)，按本项目需求独立实现。Meow 使用 [Responses API usage 字段](https://developers.openai.com/api/reference/resources/responses/methods/retrieve)，测试使用模拟响应和临时日志。
+
 ## 本地记录与清除
 
 聊天内容、宠物状态和偏好使用应用数据目录下的 SQLite 文件。发送时只选取当前会话所需的近期消息，Responses 请求使用 `store: false`。应用只管理自身历史。设置 → 本地数据可打开记录、清空对话、重置宠物或清除全部本地数据并尝试撤销已保存的授权。也可在「账号与 AI」单独注销。ChatGPT 侧的授权与额度可在 ChatGPT 设置里管理。

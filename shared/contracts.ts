@@ -1,5 +1,6 @@
 import type { Locale } from './i18n.ts';
 import type { ChatPetEffect } from './chatCare.ts';
+import type { ModelPrice, UsageData } from './usage.ts';
 
 export type WindowKind = 'pet' | 'chat' | 'settings';
 export type Animation = 'idle' | 'blink' | 'happy' | 'petting' | 'eating' | 'thinking' |
@@ -68,6 +69,11 @@ export interface ChatSendInput {
 }
 export type ChatSendResult = { status: 'care-required'; pet: PetState } | { status: 'complete' };
 export interface DesktopBridge {
+  getUsage(): Promise<UsageData>;
+  setUsagePrice(price: ModelPrice): Promise<void>;
+  clearUsage(): Promise<void>;
+  setUsageScanning(enabled: boolean): Promise<void>;
+  syncUsage(): Promise<void>;
   getSettings(): Promise<Settings>;
   updateSettings(patch: Partial<Settings>): Promise<Settings>;
   getPet(): Promise<PetState>;

@@ -5,6 +5,7 @@ import { readModelCatalog } from './modelService.ts';
 import { personality } from './personality.ts';
 import { likelyNeedsSearch, readCitation, searchFields, searchNotUsed, searchUnavailable } from './searchService.ts';
 import { interruption, readEvents } from './sse.ts';
+import { readTokenUsage, type TokenUsage } from '../../shared/usage.ts';
 
 export { AiError } from './aiError.ts';
 export type { AiErrorCode } from './aiError.ts';
@@ -25,6 +26,7 @@ type ResponseInput = {
   skipAutomaticSearch?: boolean;
   signal: AbortSignal;
   onDelta: (text: string) => void;
+  onUsage?: (tokens: TokenUsage | undefined, model: string | undefined) => void;
 };
 
 type Answer = {
@@ -135,6 +137,8 @@ export class AiService {
     }
 
     const requestId = requestIdentifier(response);
+    const reportUsage = (value: Record<string, unknown>) => request.onUsage?.(
+      readTokenUsage(value.usage), typeof value.model === 'string' && value.model.length <= 180 ? value.model : undefined);
     const searchSent = search && !searchDenied;
     const finish = (text: string, sources: Source[], searched: boolean): Answer => {
       const used = searchSent && searched;
@@ -150,6 +154,7 @@ export class AiService {
       if (media === 'application/json' || media.endsWith('+json')) {
         const body = asRecord(await response.json().catch(() => undefined));
         if (signal.aborted) throw interruption(signal, requestId);
+        if (body.object === 'response') reportUsage(body);
         if (body.error || typeof body.code === 'string') {
           throw responseError(body.error ?? body, requestId, response.status, searchSent, 'response-media');
         }
@@ -214,6 +219,7 @@ export class AiService {
         }
         case 'response.completed': {
           const final = asRecord(event.response);
+          reportUsage(final);
           if (final.error || final.status === 'failed') {
             throw responseError(final.error, requestId, response.status, searchSent, 'response-stream');
           }
@@ -235,9 +241,11 @@ export class AiService {
           return finish(answer, [...sources.values()], searched || output.searched);
         }
         case 'response.failed':
+          reportUsage(asRecord(event.response));
           throw responseError(asRecord(event.response).error ?? event.error ?? event,
             requestId, response.status, searchSent, 'response-stream');
         case 'response.incomplete':
+          reportUsage(asRecord(event.response));
           throw new AiError('incomplete', requestId, response.status, 'response-stream');
         case 'error':
           throw responseError(event.error ?? event, requestId, response.status, searchSent, 'response-stream');

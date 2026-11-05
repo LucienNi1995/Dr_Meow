@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { validPrice, type ModelPrice, type UsageData, type UsageRecord, type UsageScan } from '../shared/usage.ts';
 import { DatabaseSync } from 'node:sqlite';
 import { translate } from '../shared/i18n.ts';
 import { careTuning, hour } from '../shared/petCare.ts';
@@ -105,6 +106,10 @@ export class LocalDatabase {
       PRAGMA foreign_keys=ON;
       PRAGMA journal_mode=WAL;
       PRAGMA secure_delete=ON;
+      CREATE TABLE IF NOT EXISTS usage_records (
+        id TEXT PRIMARY KEY,
+        content TEXT NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS local_values (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -125,6 +130,7 @@ export class LocalDatabase {
       );
     `);
     this.migrate();
+    this.db.exec("UPDATE usage_records SET content=json_set(content, '$.status', 'cancelled') WHERE json_extract(content, '$.status')='running'");
     for (const row of this.db.prepare("SELECT id, content FROM messages WHERE json_extract(content, '$.status')='streaming'").all()) {
       const message = JSON.parse(String(row.content)) as Message;
       this.db.prepare('UPDATE messages SET content=? WHERE id=?')
@@ -246,7 +252,42 @@ export class LocalDatabase {
     this.db.exec('DELETE FROM conversations; PRAGMA wal_checkpoint(TRUNCATE);');
   }
   clearAll() {
-    this.db.exec('BEGIN; DELETE FROM conversations; DELETE FROM local_values; COMMIT; PRAGMA wal_checkpoint(TRUNCATE);');
+    this.db.exec('BEGIN; DELETE FROM conversations; DELETE FROM usage_records; DELETE FROM local_values; COMMIT; PRAGMA wal_checkpoint(TRUNCATE);');
+  }
+
+  recordUsage(value: UsageRecord) {
+    if (value.at <= this.read<number>('usageClearedAt', 0)) return;
+    this.db.prepare('INSERT OR REPLACE INTO usage_records(id,content) VALUES (?,?)').run(value.id, JSON.stringify(value));
+  }
+
+  importUsage(records: UsageRecord[]) {
+    this.db.exec('BEGIN');
+    try { for (const row of records) this.recordUsage(row); this.db.exec('COMMIT'); }
+    catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+
+  usageScan(): UsageScan {
+    return this.read('usageScan', { enabled: false, files: 0, imported: 0, skipped: 0, malformed: 0, unavailable: 0 });
+  }
+  saveUsageScan(scan: UsageScan) { this.write('usageScan', scan); }
+
+  usage(): UsageData {
+    const records = this.db.prepare('SELECT content FROM usage_records').all()
+      .map(row => JSON.parse(String(row.content)) as UsageRecord).sort((a, b) => b.at - a.at);
+    return { records, prices: this.read<ModelPrice[]>('usagePrices', []).filter(validPrice), scan: this.usageScan() };
+  }
+
+  setUsagePrice(value: ModelPrice) {
+    if (!validPrice(value)) throw new Error('Invalid model price');
+    const prices = this.read<ModelPrice[]>('usagePrices', []).filter(price => validPrice(price) && price.model !== value.model);
+    prices.push({ model: value.model, input: value.input, output: value.output, cached: value.cached, cacheWrite: value.cacheWrite });
+    this.write('usagePrices', prices);
+  }
+
+  clearUsage() {
+    this.db.exec('DELETE FROM usage_records; PRAGMA wal_checkpoint(TRUNCATE);');
+    this.write('usageClearedAt', Date.now());
+    this.saveUsageScan({ ...this.usageScan(), enabled: false });
   }
 
   startTurn(id: string, user: Message, assistant: Message, retryId?: string) {

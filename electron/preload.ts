@@ -8,6 +8,11 @@ function subscribe<Args extends unknown[]>(channel: string, callback: (...args: 
 }
 
 const bridge: DesktopBridge = {
+  getUsage: () => ipcRenderer.invoke('usage:get'),
+  setUsagePrice: price => ipcRenderer.invoke('usage:price', price),
+  clearUsage: () => ipcRenderer.invoke('usage:clear'),
+  setUsageScanning: enabled => ipcRenderer.invoke('usage:scanning', enabled),
+  syncUsage: () => ipcRenderer.invoke('usage:sync'),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: patch => ipcRenderer.invoke('settings:update', patch),
   getPet: () => ipcRenderer.invoke('pet:get'),

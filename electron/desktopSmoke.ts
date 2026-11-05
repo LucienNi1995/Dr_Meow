@@ -414,6 +414,7 @@ async function runMacDesktopSmoke(desktop: DesktopWindows): Promise<void> {
   const settings = await until('settings window', () => desktop.windows.settings?.isVisible() && desktop.windows.settings);
   await until('settings mount', () => script<boolean>(settings,
     "document.querySelectorAll('.settings-shell input[type=checkbox]').length >= 3"));
+  await verifyUsagePanel(settings);
   await script(settings, 'window.meow.updateSettings({alwaysOnTop: false, avoidFullscreen: false})');
   assert.equal(pet.isAlwaysOnTop(), false);
   assert.equal(pet.isVisibleOnAllWorkspaces(), true);
@@ -437,4 +438,34 @@ async function runMacDesktopSmoke(desktop: DesktopWindows): Promise<void> {
   assert.equal(pet.isVisible(), false);
   console.info('macOS smoke: transparent canvas, native edit menu, Spaces configuration, click-through calls, chat hide/reopen, history, settings, topmost, visibility and display bounds passed');
   console.info('macOS smoke: physical click-through, fullscreen Space switching, Keychain login and launch-at-login require manual verification');
+}
+
+async function verifyUsagePanel(settings: BrowserWindow) {
+  const db = new DatabaseSync(join(app.getPath('userData'), 'dr-meow.sqlite'));
+  try {
+    const insert = db.prepare('INSERT INTO usage_records(id,content) VALUES (?,?)');
+    for (const source of ['meow', 'claude', 'codex']) {
+      const row = { id: `smoke-${source}`, source, model: 'smoke-model', at: Date.now(), status: 'complete',
+        tokens: { input: 1000000, output: 100000, cached: 400000, cacheWrite: 100000, reasoning: 20000 } };
+      insert.run(row.id, JSON.stringify(row));
+    }
+  } finally { db.close(); }
+  await script(settings, `window.meow.updateSettings({locale: 'en'})`);
+  await until('usage tab', () => script<boolean>(settings, `(() => {
+    const button = [...document.querySelectorAll('.tabs button')].find(button => button.textContent === 'Usage');
+    button?.click(); return Boolean(button);
+  })()`));
+  await until('usage records render', () => script<boolean>(settings, "document.querySelectorAll('.usage-requests li').length === 3"));
+  assert.equal(await script(settings, "document.querySelector('.usage-totals').textContent.includes('3,300,000')"), true);
+  await script(settings, "window.meow.setUsagePrice({model:'smoke-model',input:2,output:10,cached:0.2,cacheWrite:2.5})");
+  await script(settings, "[...document.querySelectorAll('.usage-panel button')].find(button => button.textContent === 'Refresh').click()");
+  await until('cost estimate renders', () => script<boolean>(settings, "document.querySelector('.usage-totals').textContent.includes('$6.99')"));
+  await script(settings, `(() => {
+    const select = document.querySelectorAll('.usage-panel select')[1];
+    select.value = 'codex'; select.dispatchEvent(new Event('change', {bubbles:true}));
+  })()`);
+  await until('source filter applies', () => script<boolean>(settings, "document.querySelectorAll('.usage-requests li').length === 1"));
+  assert.equal(await script(settings, 'document.documentElement.scrollWidth <= window.innerWidth'), true);
+  await capture(settings, 'mac-usage');
+  console.info('Usage smoke: three sources, reported token totals, editable rates, cache-aware cost, source filter and panel layout passed');
 }
