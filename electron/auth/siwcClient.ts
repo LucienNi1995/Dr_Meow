@@ -29,7 +29,7 @@ interface Vault {
   pendingClientId?: string
 }
 
-const storageError = () => new AuthError('error', '无法读取或写入 Windows 加密凭据。请检查本地数据设置。', 'Could not read or save your encrypted Windows credentials. Check your local data settings.')
+const storageError = () => new AuthError('error', '无法读取或写入系统加密凭据。请检查本地数据设置。', 'Could not read or save your encrypted credentials. Check your local data settings.')
 const signedOut = () => new AuthError('signed-out', '请先使用 ChatGPT 登录。', 'Please sign in with ChatGPT first.')
 const noPlan = () => new AuthError('identity-only', '账号已连接，但尚未授予 ChatGPT 套餐使用权限。', 'Your account is connected. Authorize ChatGPT plan usage to start chatting.')
 const expired = () => new AuthError('expired', 'ChatGPT 会话已过期，请重新登录。', 'Your ChatGPT session has expired. Please sign in again.')

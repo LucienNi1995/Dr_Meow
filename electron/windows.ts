@@ -47,7 +47,7 @@ export class DesktopWindows {
   private make(kind: WindowKind, options: Electron.BrowserWindowConstructorOptions) {
     const win = new BrowserWindow({
       ...options, show: false, frame: false, autoHideMenuBar: true,
-      icon: join(__dirname, '../renderer/assets/app.ico'),
+      icon: join(__dirname, process.platform === 'darwin' ? '../renderer/assets/app.png' : '../renderer/assets/app.ico'),
       webPreferences: {
         preload: join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true,
         nodeIntegration: false, webSecurity: true, spellcheck: false, devTools: dev
@@ -107,7 +107,8 @@ export class DesktopWindows {
     });
     this.syncFullscreenMonitor();
     const icon = nativeImage.createFromPath(join(__dirname, '../renderer/assets/tray.png'));
-    this.tray = new Tray(icon.isEmpty() ? nativeImage.createFromPath(process.execPath) : icon);
+    this.tray = new Tray(process.platform === 'darwin' ? icon.resize({ width: 18, height: 18 }) :
+      icon.isEmpty() ? nativeImage.createFromPath(process.execPath) : icon);
     this.tray.on('double-click', () => this.togglePet());
     this.refreshTray();
     screen.on('display-added', () => this.reconcileDisplays());
@@ -212,6 +213,13 @@ export class DesktopWindows {
 
   private syncFullscreenMonitor() {
     const pet = this.windows.pet;
+    if (process.platform === 'darwin' && pet) {
+      // Fullscreen apps use their own Space. Stay on desktop Spaces by default;
+      // joining fullscreen Spaces is an explicit opt-in through this setting.
+      pet.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: !this.avoidFullscreen,
+        skipTransformProcessType: true });
+      return;
+    }
     if (!this.avoidFullscreen) {
       this.stopFullscreenMonitor?.();
       this.stopFullscreenMonitor = undefined;

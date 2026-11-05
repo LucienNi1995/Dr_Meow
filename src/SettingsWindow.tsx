@@ -146,7 +146,7 @@ export function SettingsWindow() {
           <Toggle title={t('全屏时自动避让', 'Hide during fullscreen')}
             detail={t('猫博士会暂时离开正在全屏的显示器', 'Temporarily hide the cat on the display in fullscreen use')}
             value={settings.avoidFullscreen} set={value => void state.update({ avoidFullscreen: value })} />
-          <Toggle title={t('开机启动', 'Start at sign-in')} detail={t('安装版在登录 Windows 时启动', 'Launch the installed app when you sign in to Windows')}
+          <Toggle title={t('开机启动', 'Start at sign-in')} detail={t('安装版在登录电脑时启动', 'Launch the installed app when you sign in')}
             value={settings.startOnLogin} set={value => void state.update({ startOnLogin: value })} />
           <Toggle title={t('安静模式', 'Quiet mode')} detail={t('保留呼吸和互动反馈，暂停自主动作', 'Keep breathing and reactions, pause spontaneous actions')}
             value={settings.quiet} set={value => void state.update({ quiet: value })} />
@@ -192,8 +192,8 @@ export function SettingsWindow() {
         </section>
         <section className="setting-card">
           <h2>{t('隐私与历史', 'Privacy and history')}</h2>
-          <p className="muted">{t('对话、宠物和偏好保存在这台电脑。发送问题时，会把当前对话中相关的近期消息交给 OpenAI。Windows 加密保护登录凭据。',
-            'Your chats, pet data, and preferences are stored on this PC. When you ask a question, relevant recent messages from that chat are sent to OpenAI. Windows encrypts your sign-in credentials.')}</p>
+          <p className="muted">{t('对话、宠物和偏好保存在这台电脑。发送问题时，会把当前对话中相关的近期消息交给 OpenAI。系统加密存储保护登录凭据。',
+            'Your chats, pet data, and preferences are stored on this computer. When you ask a question, relevant recent messages from that chat are sent to OpenAI. System encryption protects your sign-in credentials.')}</p>
           <div className="data-buttons">
             <button className="secondary" onClick={() => desktop.openChat()}>{t('打开聊天记录', 'Open chat history')}</button>
             <button className="secondary" onClick={() => { setNotice(undefined); setWipe('pet'); }}>{t('重置宠物状态', 'Reset pet stats')}</button>

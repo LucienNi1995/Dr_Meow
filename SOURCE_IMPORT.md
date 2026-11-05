@@ -31,6 +31,6 @@ Generate the Windows installer:
 pnpm dist:win
 ```
 
-Expected output: `release/Dr-Meow-Upgrade-1.1.0-x64.exe`. `pnpm pack:win` creates an unpacked application directory. The provided packaging configuration targets Windows; macOS packaging still needs implementation and validation.
+Expected output: `release/Dr-Meow-Upgrade-1.1.0-x64.exe`. `pnpm pack:win` creates an unpacked application directory. The original packaging configuration targets Windows. The macOS support branch adds app, DMG, and ZIP targets; see README for macOS instructions.
 
-The original source files were imported without executing project scripts. Dependency installation, compilation, and Windows runtime have not been verified on this Mac. Local `spec/` and `agent.md` remain ignored. No changes have been pushed.
+The original source files were imported without executing project scripts. Dependency installation, compilation, and Windows runtime have not been verified on this Mac. Local `spec/` and `agent.md` remain ignored. The original import was preserved on the release branch.

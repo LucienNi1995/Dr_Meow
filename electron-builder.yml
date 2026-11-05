@@ -1,12 +1,20 @@
 appId: org.drmeow.desktop
 productName: Dr. Meow
 directories:
+  app: .
   output: release
 files:
   - dist/**/*
   - '!dist/native/**'
   - package.json
 asar: true
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.lifestyle
+  icon: public/assets/app.png
+  artifactName: Dr-Meow-${version}-mac-${arch}.${ext}
 win:
   target:
     - target: nsis

@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 import { join } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { app, screen } from 'electron';
+import { app, Menu, screen } from 'electron';
 import type { BrowserWindow } from 'electron';
 import type { Conversation, PetState, Point, Settings } from '../shared/contracts.ts';
 import { besidePet, keepVisible, petViewport } from './geometry.ts';
@@ -185,6 +185,7 @@ async function exercisePetInput(pet: BrowserWindow, desktop: DesktopWindows) {
 }
 
 export async function runDesktopSmoke(desktop: DesktopWindows): Promise<void> {
+  if (process.platform === 'darwin') return runMacDesktopSmoke(desktop);
   const pet = await until('pet window', () => desktop.windows.pet?.isVisible() && desktop.windows.pet);
   const original = await script<Settings>(pet, 'window.meow.getSettings()');
   assert.equal(original.size, 180);
@@ -377,4 +378,63 @@ export async function runDesktopSmoke(desktop: DesktopWindows): Promise<void> {
   assert.ok(!pet.isDestroyed() && !chat.isDestroyed());
   console.info(`Desktop smoke: resize, topmost, settings, and geometry verified on ${screen.getAllDisplays().length} display(s), scale ${screen.getPrimaryDisplay().scaleFactor}`);
   app.once('quit', (_event, code) => console.info(`Desktop smoke: Electron quit with status ${code}`));
+}
+
+async function runMacDesktopSmoke(desktop: DesktopWindows): Promise<void> {
+  const pet = await until('pet window', () => desktop.windows.pet?.isVisible() && desktop.windows.pet);
+  await until('pet canvas is painted', () => script<boolean>(pet,
+    "Boolean(document.querySelector('canvas.pet-motion[data-ready=true]'))"));
+  verifyFrameless(pet);
+  await verifyPetCapture(pet);
+  assert.equal(pet.isFocusable(), false);
+  assert.equal(pet.isAlwaysOnTop(), true);
+  assert.equal(pet.isVisibleOnAllWorkspaces(), true);
+  assert.equal(await script(pet, 'typeof require'), 'undefined');
+  const roles = Menu.getApplicationMenu()?.items.flatMap(item => item.submenu?.items.map(child => child.role) ?? []);
+  assert.ok(roles?.includes('copy') && roles.includes('paste'), 'Native editing commands are present');
+  desktop.setPetHit(true);
+  desktop.setPetHit(false);
+
+  desktop.openChat();
+  const chat = await until('chat window', () => desktop.windows.chat?.isVisible() && desktop.windows.chat);
+  await until('chat composer mounts', () => script<boolean>(chat, "Boolean(document.querySelector('textarea'))"));
+  verifyFrameless(chat);
+  const conversation = await script<Conversation>(chat, 'window.meow.newChat()');
+  await script(chat, `window.meow.renameChat(${JSON.stringify(conversation.id)}, 'Mac smoke history')`);
+  chat.close();
+  await until('chat hides on close', () => !chat.isVisible());
+  assert.equal(pet.isVisible(), true);
+  desktop.openChat();
+  await until('chat reopens', () => chat.isVisible());
+  assert.equal(desktop.windows.chat, chat);
+  const history = await script<Conversation[]>(chat, 'window.meow.listChats()');
+  assert.equal(history.find(item => item.id === conversation.id)?.title, 'Mac smoke history');
+
+  desktop.openSettings();
+  const settings = await until('settings window', () => desktop.windows.settings?.isVisible() && desktop.windows.settings);
+  await until('settings mount', () => script<boolean>(settings,
+    "document.querySelectorAll('.settings-shell input[type=checkbox]').length >= 3"));
+  await script(settings, 'window.meow.updateSettings({alwaysOnTop: false, avoidFullscreen: false})');
+  assert.equal(pet.isAlwaysOnTop(), false);
+  assert.equal(pet.isVisibleOnAllWorkspaces(), true);
+  await script(settings, 'window.meow.updateSettings({alwaysOnTop: true, avoidFullscreen: true})');
+  assert.equal(pet.isAlwaysOnTop(), true);
+  const before = pet.getBounds();
+  desktop.setFullscreenObstruction(true);
+  await until('fullscreen obstruction hides the pet', () => !pet.isVisible());
+  desktop.setFullscreenObstruction(false);
+  await until('pet returns', () => pet.isVisible());
+  assert.deepEqual(pet.getBounds(), before);
+  const area = screen.getDisplayMatching(before).workArea;
+  pet.setPosition(area.x - 500, area.y - 500);
+  desktop.reconcileDisplays();
+  const bounds = pet.getBounds();
+  assert.deepEqual({ x: bounds.x, y: bounds.y }, keepVisible(bounds, screen.getDisplayMatching(bounds).workArea));
+  pet.close();
+  await until('pet hides on close', () => !pet.isVisible());
+  desktop.setFullscreenObstruction(true);
+  desktop.setFullscreenObstruction(false);
+  assert.equal(pet.isVisible(), false);
+  console.info('macOS smoke: transparent canvas, native edit menu, Spaces configuration, click-through calls, chat hide/reopen, history, settings, topmost, visibility and display bounds passed');
+  console.info('macOS smoke: physical click-through, fullscreen Space switching, Keychain login and launch-at-login require manual verification');
 }

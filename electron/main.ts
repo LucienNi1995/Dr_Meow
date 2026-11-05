@@ -1,5 +1,5 @@
 import { translate, translator } from '../shared/i18n.ts';
-import { app, clipboard, ipcMain, powerMonitor, safeStorage, session, shell } from 'electron';
+import { app, clipboard, ipcMain, Menu, powerMonitor, safeStorage, session, shell } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -15,7 +15,7 @@ import { applyPetAction, LocalDatabase, petAtTime, sanitizeSettings } from './da
 import { DesktopWindows } from './windows.ts';
 
 app.setName('Dr. Meow');
-app.setAppUserModelId('org.drmeow.desktop');
+if (process.platform === 'win32') app.setAppUserModelId('org.drmeow.desktop');
 class UserMessageError extends Error {}
 
 const smoke = process.argv.includes('--desktop-smoke');
@@ -65,6 +65,12 @@ function launch() {
   let authGeneration = 0;
   let resetting = false;
   const desktop = new DesktopWindows(db, () => quitting, !smoke);
+  if (process.platform === 'darwin') {
+    Menu.setApplicationMenu(Menu.buildFromTemplate([
+      { role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' },
+    ]));
+    if (!app.isPackaged) app.dock?.setIcon(join(__dirname, '../renderer/assets/app.png'));
+  }
   const all: WindowKind[] = ['pet', 'chat', 'settings'];
   const accountWindows: WindowKind[] = ['chat', 'settings'];
   const chat: WindowKind[] = ['chat'];
