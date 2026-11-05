@@ -2,14 +2,16 @@
   "name": "dr-meow",
   "productName": "Dr. Meow",
   "version": "1.1.0",
-  "description": "A quiet Windows desktop cat and ChatGPT companion",
+  "description": "A quiet desktop cat and ChatGPT companion for Windows and macOS",
   "author": "Dr. Meow contributors",
   "license": "MIT",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.25.0",
   "main": "dist/electron/main.cjs",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "start": "electron .",
@@ -18,7 +20,9 @@
     "test": "node --test --test-isolation=none tests/*.test.ts",
     "test:desktop": "electron . --desktop-smoke",
     "dist:win": "tsc --noEmit && node scripts/build.mjs && electron-builder --win nsis --x64",
-    "pack:win": "tsc --noEmit && node scripts/build.mjs && electron-builder --win --dir --x64"
+    "pack:win": "tsc --noEmit && node scripts/build.mjs && electron-builder --win --dir --x64",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "pack:mac": "npm run build && electron-builder --mac --dir"
   },
   "dependencies": {
     "react": "^19.2.0",
@@ -37,4 +41,3 @@
     "vite": "~8.3.0"
   }
 }
-

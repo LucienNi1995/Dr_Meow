@@ -1,6 +1,6 @@
 # Dr. Meow · 猫博士
 
-Dr. Meow 是一个 Windows 桌面宠物。它会眨眼、打盹，接受抚摸和投喂。双击猫咪可打开聊天，使用你自己授权的 ChatGPT 套餐进行对话。
+Dr. Meow 是一个支持 Windows 和 macOS 的桌面宠物。它会眨眼、打盹，接受抚摸和投喂。双击猫咪可打开聊天，使用你自己授权的 ChatGPT 套餐进行对话。
 
 ## 安装与启动
 
@@ -39,7 +39,7 @@ Windows 开发构建需要 Node.js 24、pnpm 11 和系统自带的 .NET Framewor
 
 若聊天仍报错，可展开该条消息下的「请求诊断」，复制请求阶段、错误类别和可用的请求编号。诊断中只包含技术状态和编号。
 
-桌宠功能无需登录。本项目使用官方开放源码 SIWC 流程。凭据由 Electron 主进程通过 Windows 加密存储保护。推理使用经授权的 ChatGPT OAuth 凭据。聊天支持 Markdown、复制、取消、重试和本地多会话。普通聊天会在问题明显需要最新信息时尝试官方联网搜索。可在输入框打开「联网搜索」明确发起查询。账号或模型不支持时，会给出提示和普通问答入口。来源卡片基于服务返回的引用，点击后用系统浏览器打开。
+桌宠功能无需登录。本项目使用官方开放源码 SIWC 流程。凭据由 Electron 主进程通过系统加密存储保护（macOS 使用钥匙串）。推理使用经授权的 ChatGPT OAuth 凭据。聊天支持 Markdown、复制、取消、重试和本地多会话。普通聊天会在问题明显需要最新信息时尝试官方联网搜索。可在输入框打开「联网搜索」明确发起查询。账号或模型不支持时，会给出提示和普通问答入口。来源卡片基于服务返回的引用，点击后用系统浏览器打开。
 
 - [OpenAI 官方快速入门](https://developers.openai.com/siwc/quickstart)
 - [开源应用授权、注册与续期](https://developers.openai.com/siwc/token-sharing-open-source)
@@ -47,7 +47,7 @@ Windows 开发构建需要 Node.js 24、pnpm 11 和系统自带的 .NET Framewor
 - [套餐预览限制](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
 - [官方 Electron DevKit 示例](https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt)
 
-认证参考了官方 Electron DevKit 的流程。当前示例中的 `@siwc/local` 是私有工作区包，使用其自带的非商业许可证。本项目按公开协议使用 Node 标准库独立实现，使用 OpenAI 官方的登录按钮图标。Electron 提供 Windows 窗口和安全存储，React 与 Vite 构建界面，Node 自带 SQLite 用于本地记录。界面样式由 CSS 实现，桌宠与设置共用逐帧播放器和时间线。
+认证参考了官方 Electron DevKit 的流程。当前示例中的 `@siwc/local` 是私有工作区包，使用其自带的非商业许可证。本项目按公开协议使用 Node 标准库独立实现，使用 OpenAI 官方的登录按钮图标。Electron 提供桌面窗口和安全存储，React 与 Vite 构建界面，Node 自带 SQLite 用于本地记录。界面样式由 CSS 实现，桌宠与设置共用逐帧播放器和时间线。
 
 ## 语言和皮肤
 
@@ -64,6 +64,25 @@ python scripts/build_pet_frames.py --sources
 ## 本地记录与清除
 
 聊天内容、宠物状态和偏好使用应用数据目录下的 SQLite 文件。发送时只选取当前会话所需的近期消息，Responses 请求使用 `store: false`。应用只管理自身历史。设置 → 本地数据可打开记录、清空对话、重置宠物或清除全部本地数据并尝试撤销已保存的授权。也可在「账号与 AI」单独注销。ChatGPT 侧的授权与额度可在 ChatGPT 设置里管理。
+
+## macOS 开发与打包
+
+需要 Node.js 24 或更新版本。在 Mac 上执行：
+
+```sh
+npm install
+npm run dev
+npm run pack:mac
+npm run dist:mac
+```
+
+`pack:mac` 生成当前 Mac 架构的 `.app`，`dist:mac` 在 `release/` 生成 DMG 和 ZIP。Apple Silicon 使用 arm64，Intel 使用 x64；需要指定架构时可运行 `npm run dist:mac -- --arm64` 或 `--x64`。开发构建和 macOS 打包不需要 Windows .NET 工具。
+
+拖动应用至 Applications 后启动。菜单栏图标可显示或隐藏猫咪、打开聊天和设置以及退出。Dock 图标可重新打开聊天；关闭聊天窗口会隐藏窗口。原生编辑菜单支持 Command-C、Command-V 和 Command-A。登录凭据通过 Electron safeStorage 和 macOS 钥匙串加密保存。自动登录仅适用于安装版。
+
+macOS 全屏应用通常占用独立 Space。默认猫咪显示在普通桌面 Space，避开全屏 Space；关闭「全屏时自动避让」后允许猫咪显示在全屏 Space。macOS 不使用 Windows 的全屏探测器，也不申请屏幕录制或辅助功能权限。普通桌面的无边框全屏应用不做额外检测。
+
+公开分发前需要 Apple Developer ID 签名和 notarization；本地打包不会自动提供这些凭据。可通过 electron-builder 的签名环境变量和 macOS 配置设置。未签名或仅 ad-hoc 签名的开发包可能被 Gatekeeper 拦截。
 
 ## Windows 打包
 
