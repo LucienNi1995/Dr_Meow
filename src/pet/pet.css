@@ -1,0 +1,265 @@
+.pet-stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
+  isolation: isolate;
+  user-select: none;
+  color: #563b39;
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.pet-stage button {
+  font: inherit;
+}
+
+.pet-target {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: var(--pet-size);
+  height: var(--pet-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+}
+
+.pet-target:active {
+  cursor: grabbing;
+}
+
+.pet-target:focus-visible {
+  outline: 2px solid #e59a9e;
+  outline-offset: -12px;
+  border-radius: 42%;
+}
+
+.pet-character, .pet-pose, .pet-art, .pet-portrait, .pet-motion {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pet-character {
+  opacity: var(--pet-opacity, 1);
+}
+
+.pet-art {
+  filter: drop-shadow(0 2px 3px #492b2321);
+}
+
+.pet-portrait {
+  object-fit: contain;
+}
+
+.pet-motion {
+  visibility: hidden;
+}
+
+.pet-motion[data-ready] {
+  visibility: visible;
+}
+
+.pet-art:has(.pet-motion[data-ready]) .pet-portrait {
+  visibility: hidden;
+}
+
+
+.pet-effect {
+  position: absolute;
+  right: 5%;
+  top: 8%;
+  pointer-events: none;
+  color: #ba596b;
+  text-shadow: 0 1px 3px #56253431;
+}
+
+.pet-effect i {
+  font-style: normal;
+}
+
+.pet-hearts {
+  right: 7%;
+  top: 9%;
+  display: flex;
+  gap: 2px;
+  font-size: calc(var(--pet-size) * .1);
+  color: #e48298;
+}
+
+.pet-hearts i {
+  --heart-x: -8px;
+  --heart-y: -19px;
+  animation: pet-heart-float 1.03s ease-out both;
+}
+
+.pet-hearts i:nth-child(2) {
+  --heart-x: 1px;
+  --heart-y: -26px;
+  color: #f3a9b3;
+  translate: 0 -5px;
+  animation-delay: .1s;
+}
+
+.pet-hearts i:nth-child(3) {
+  --heart-x: 11px;
+  --heart-y: -15px;
+  font-size: .75em;
+  animation-delay: .17s;
+}
+
+.pet-sparkle {
+  font-size: calc(var(--pet-size) * .14);
+  font-weight: 650;
+  animation: pet-float 1.18s ease-out both;
+}
+
+.pet-sparkle {
+  font-size: calc(var(--pet-size) * .14);
+  animation: pet-float 1.18s ease-out both;
+  color: #d99540;
+}
+
+.pet-menu {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: min(222px, calc(100% - 16px));
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #f0d3c3;
+  border-radius: 17px;
+  background: linear-gradient(151deg, #fffaf3 8%, #fff2ed 100%);
+  box-shadow: 0 5px 13px #4f292c32;
+  animation: pet-menu-in .13s ease-out both;
+}
+
+.pet-symbol { display: block; width: 21px; height: 21px; }
+.pet-icon-soft { fill: #f1c9be; }
+.pet-icon-row { display: grid; gap: 5px; }
+.pet-state-row, .pet-food-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pet-actions-row, .pet-context-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.pet-state-row + .pet-actions-row { margin-top: 6px; }
+.pet-menu .pet-icon-button, .shell .pet-icon-button, .pet-icon-button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 33px;
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid #eed2c6;
+  background: #fff8ee;
+  color: #865550;
+}
+button.pet-icon-button { cursor: pointer; }
+.pet-menu .pet-icon-button:hover, .shell button.pet-icon-button:hover, button.pet-icon-button:hover { background: #f7ded3; }
+.pet-icon-button:focus-visible { outline: 2px solid #a85568; outline-offset: 1px; z-index: 2; }
+.pet-icon-button:focus-visible::after {
+  content: attr(data-hint);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  translate: -50% 0;
+  max-width: 130px;
+  min-width: max-content;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #603e42;
+  color: #fff7f2;
+  font-size: 10px;
+  line-height: 1.2;
+  pointer-events: none;
+}
+.pet-menu .pet-icon-button:first-child:focus-visible::after { left: 0; translate: 0 0; }
+.pet-menu .pet-icon-button:last-child:focus-visible::after { left: auto; right: 0; translate: 0 0; }
+.pet-menu .pet-indicator, .shell .pet-indicator { background: #f9e8df; }
+.pet-menu .pet-icon-button[aria-pressed="true"], .shell .pet-icon-button[aria-pressed="true"] {
+  background: #fae0d3;
+  border-color: #cb8b82;
+}
+.pet-state-row .pet-icon-button:last-child { color: #79558a; background: #f4e8f6; }
+.pet-state-row .pet-icon-button:last-child .pet-icon-soft { fill: #dbc6e5; }
+.pet-icon-button[data-gain] { animation: pet-indicator-gain 1s ease-out both; }
+.pet-status {
+  top: auto;
+  bottom: calc(var(--pet-size) + 8px);
+  left: 50%;
+  translate: -50% 0;
+  width: min(222px, calc(100% - 16px));
+  padding: 7px 8px;
+}
+.pet-status::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  background: #fff2ed;
+  border-right: 1px solid #f0d3c3;
+  border-bottom: 1px solid #f0d3c3;
+  transform: translateX(-50%) rotate(45deg);
+  pointer-events: none;
+}
+.pet-activity-badge, .pet-gain-badge {
+  position: absolute;
+  top: 9%;
+  right: 4%;
+  padding: 4px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #f1d2c4;
+  border-radius: 50%;
+  background: #fff6ef;
+  color: #925d68;
+  pointer-events: none;
+}
+.pet-activity-badge .pet-symbol, .pet-gain-badge .pet-symbol { width: 15px; height: 15px; }
+.pet-gain-badge { right: 18%; animation: pet-gain-float 1.05s ease-out both; }
+.pet-hearts .pet-symbol, .pet-sparkle .pet-symbol { width: 19px; height: 19px; }
+@keyframes pet-indicator-gain {
+  28% { background: #ffe0d9; box-shadow: inset 0 0 0 1px #d89994; }
+}
+@keyframes pet-gain-float {
+  0% { opacity: 0; translate: 0 2px; }
+  22%, 64% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -11px; }
+}
+
+@keyframes pet-float {
+  0% { opacity: 0; transform: translateY(7px) scale(.72); }
+  23%, 74% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-8px) scale(1.04); }
+}
+@keyframes pet-heart-float {
+  0% { opacity: 0; transform: translateY(6px) scale(.62); }
+  26%, 63% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--heart-x), var(--heart-y)) scale(1.05); }
+}
+@keyframes pet-menu-in {
+  from { opacity: 0; transform: translateY(3px) scale(.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-menu {
+    animation: none !important;
+    transition: none;
+  }
+  .pet-hearts i, .pet-sparkle, .pet-gain-badge, .pet-icon-button[data-gain] { animation: none; }
+}
+
+.pet-preview-controls label { color: #684e47; font-weight: 600; }
+.pet-preview-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pet-preview-button .pet-symbol { width: 15px; height: 15px; }

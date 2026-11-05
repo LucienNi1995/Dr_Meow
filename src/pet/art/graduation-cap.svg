@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="208" viewBox="0 0 400 208">
+  <defs>
+    <linearGradient id="cloth" x2="0.38" y2="1">
+      <stop stop-color="#49404b"/>
+      <stop offset=".52" stop-color="#322b38"/>
+      <stop offset="1" stop-color="#241e2a"/>
+    </linearGradient>
+    <linearGradient id="board" x1="0" x2=".88" y1=".32" y2=".76">
+      <stop stop-color="#5d505b"/>
+      <stop offset=".46" stop-color="#3c3541"/>
+      <stop offset="1" stop-color="#292631"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" x2="1">
+      <stop stop-color="#403340"/>
+      <stop offset=".52" stop-color="#5b4a57"/>
+      <stop offset="1" stop-color="#241c2a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop stop-color="#98613a"/>
+      <stop offset=".24" stop-color="#eeb560"/>
+      <stop offset=".55" stop-color="#ffe19b"/>
+      <stop offset="1" stop-color="#ae7745"/>
+    </linearGradient>
+  </defs>
+  <path d="M103 89 291 75l4 54c1 17-44 43-96 48-36 4-76-6-87-20z" fill="url(#cloth)" stroke="#2d2430" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M116 145c22 18 72 22 114 10 21-6 42-16 56-28" fill="none" stroke="#76606c" stroke-opacity=".72" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M23 89 192 127l175-70-2 10-172 71-168-40z" fill="url(#edge)" stroke="#2b222e" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M23 89 198 22q5-2 9-1l160 36-175 70z" fill="url(#board)" stroke="#29212c" stroke-width="3.7" stroke-linejoin="round"/>
+  <path d="M35 87 198 27l153 34M38 94l152 32 165-66" fill="none" stroke="#8f7b85" stroke-opacity=".65" stroke-width="1.9" stroke-linecap="round"/>
+  <path d="M195 76c19-11 39-9 61-4 20 4 45 7 66 12 18 4 22 19 22 42l-1 12" fill="none" stroke="#6b4533" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M195 75c20-10 39-8 60-3 20 4 46 7 67 12 17 4 21 18 21 42l-1 12" fill="none" stroke="#f4be71" stroke-width="3.8" stroke-linecap="round"/>
+  <ellipse cx="196" cy="73" rx="11" ry="5.5" transform="rotate(-12 196 73)" fill="#40333c" stroke="#d1a76e" stroke-width="1.8"/>
+  <path d="M338 144c-2 11-4 23-11 37 7 4 15 5 24 3-2-12-1-27-2-40z" fill="url(#gold)" stroke="#835637" stroke-width="2.3" stroke-linejoin="round"/>
+  <path d="M341 151c-1 11-4 24-7 31m11-31c0 14 0 24 1 32" fill="none" stroke="#ffe3aa" stroke-opacity=".85" stroke-width="1.3" stroke-linecap="round"/>
+  <ellipse cx="343.4" cy="143" rx="7.3" ry="6.8" fill="url(#gold)" stroke="#825437" stroke-width="2.2"/>
+</svg>
+

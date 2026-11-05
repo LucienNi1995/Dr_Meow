@@ -1,0 +1,6 @@
+nodeLinker: hoisted
+allowBuilds:
+  electron-winstaller: false
+  esbuild: true
+minimumReleaseAgeExclude:
+  - electron@45.2.2

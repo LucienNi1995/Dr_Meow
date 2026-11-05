@@ -1,0 +1,8 @@
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  base: './',
+  build: { outDir: 'dist/renderer' },
+  server: { host: '127.0.0.1', port: 4177, strictPort: true }
+});
+
