@@ -2,6 +2,22 @@
 
 Recovered release files on branch `release/v1.1.0`.
 
+## Use the released Windows app
+
+1. On a Windows x64 computer, open the release link below and download `Dr-Meow-1.1.0-Windows-x64.zip` or `Dr-Meow-Upgrade-1.1.0-x64.exe`.
+2. If you downloaded the ZIP, extract it. It contains the same upgrade installer, not a portable application folder.
+3. Run `Dr-Meow-Upgrade-1.1.0-x64.exe` on Windows and follow its installer prompts, then launch Dr. Meow from the installed shortcut if one is created.
+
+The publisher labels this an upgrade installer. A fresh installation and the installed app have not been tested here. This Windows executable does not run directly on macOS. GitHub authentication is not needed to download the public release. Any in-app ChatGPT sign-in is separate from GitHub authentication.
+
+## Can this repository generate a Windows app?
+
+Not yet. This branch preserves files recovered from the distributed app; it is not a complete buildable development project. There is currently no `npm run build`, `npm start`, or installer-generation command configured.
+
+The packaged `app/package.json` identifies `dist/electron/main.cjs` as its Electron entry point, but contains no scripts or Electron/build-tool dependencies. The release also ships a Windows helper at `resources/native/FullscreenProbe.exe`; that helper is outside `app.asar` and is not included in this branch.
+
+To restore a Windows build workflow, obtain the original development repository and its lockfile, Electron version, build configuration, and native helper sources. Alternatively, create and validate a new packaging setup around the recovered bundles, include the native helper at the expected resource path, and test the resulting installer on Windows. A repackaged build would not reproduce the original source project or guarantee an identical installer.
+
 ## Contents
 
 - `app/dist/electron/`: packaged Electron main process and preload JavaScript.
